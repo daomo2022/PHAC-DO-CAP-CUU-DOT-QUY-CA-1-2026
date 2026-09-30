@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phác Đồ Cấp Cứu Đột Quỵ Siêu Khẩn Cấp - Tuyến Cơ Bản</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* Thêm style cho khung ảnh và hiệu ứng loading âm thanh */
+        .slide-image-container {
+            width: 100%;
+            height: 180px;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(59, 130, 246, 0.3); /* blue-500/30 */
+            background-color: rgba(15, 23, 42, 0.5); /* slate-900/50 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slide-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background-color: #0f172a;
+        }
+        .audio-loading-bar {
+            width: 100%;
+            height: 3px;
+            background-color: rgba(30, 41, 59, 0.5);
+            margin-top: -4px;
+            overflow: hidden;
+            border-radius: 2px;
+            display: none;
+        }
+        .audio-loading-bar.active { display: block; }
+        .audio-loading-progress {
+            height: 100%;
+            width: 30%;
+            background-color: #3b82f6;
+            animation: moveLoadingBar 1.5s infinite linear;
+        }
+        @keyframes moveLoadingBar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(400%); }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-blue-600 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="bg-slate-900 border-b border-blue-900/40 sticky top-0 z-50 px-4 py-3 shadow-lg backdrop-blur-md bg-opacity-90">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30 text-white font-bold text-xl">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-blue-400 tracking-wide">CAS CẤP CỨU ĐỘT QUỴ SIÊU KHẨN CẤP</h1>
+                    <p class="text-xs text-slate-400">Bệnh nhân Nam 96 tuổi | Tiền sử THA, ĐTĐ, Suy thận mạn</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="bg-red-950/80 border border-red-600/50 text-red-400 text-xs px-3 py-1 rounded-full font-semibold flex items-center gap-1.5 animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Glasgow 12đ • Đường máu 17.52 mmol/L
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left: Lecture & Controls Player (8 cols) -->
+        <section class="lg:col-span-8 flex flex-col gap-5">
+            
+            <!-- Video/Slide Visual Player Box -->
+            <div class="relative bg-gradient-to-br from-blue-950/60 via-slate-900 to-slate-900 border border-blue-800/40 rounded-2xl p-6 md:p-8 shadow-2xl overflow-hidden min-h-[380px] flex flex-col justify-between">
+                
+                <!-- Background Glow Decor -->
+                <div class="absolute -top-24 -right-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Slide Header Info -->
+                <div class="flex justify-between items-start relative z-10 mb-4">
+                    <span id="stepBadge" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-bold tracking-wider uppercase shadow-md shadow-blue-600/30">
+                        BƯỚC 1 / 5
+                    </span>
+                    <div class="flex items-center gap-2 flex-col sm:flex-row align-end">
+                        <button onclick="playAIVoice()" id="speechBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-indigo-600/30">
+                            <i id="speakerIcon" class="fa-solid fa-microphone-lines"></i> <span id="speechText">Phát Audio AI</span>
+                        </button>
+                        <span id="timerIndicator" class="text-xs font-mono text-slate-400 bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700 mt-2 sm:mt-0">
+                            <i class="fa-regular fa-clock mr-1 text-blue-400"></i> AHA/ASA 2023
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Thanh hiển thị loading âm thanh AI -->
+                <div id="audioLoader" class="audio-loading-bar relative z-10 mb-4">
+                    <div class="audio-loading-progress"></div>
+                </div>
+
+                <!-- Central Presentation Content -->
+                <div class="my-2 relative z-10 flex flex-col md:flex-row gap-6 items-start">
+                    
+                    <!-- Cột Nội dung văn bản -->
+                    <div class="flex-1 space-y-4">
+                        <h2 id="slideTitle" class="text-xl md:text-2xl font-extrabold text-white leading-tight">
+                            XÁC ĐỊNH THỂ ĐỘT QUỴ NGAY LẬP TỨC
+                        </h2>
+                        <p id="slideDesc" class="text-slate-300 text-sm md:text-base leading-relaxed">
+                            Chưa có kết quả hình ảnh học: <strong class="text-red-400">Tuyệt đối không dùng thuốc tiêu sợi huyết hay chống ngưng tập</strong>. Bắt buộc chụp CT Scan sọ não khẩn cấp (trong 20-30 phút đầu) để phân biệt Xuất huyết não hay Nhồi máu não.
+                        </p>
+                        <div id="slideKeyAction" class="bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-r-xl text-xs md:text-sm text-blue-200">
+                            <strong>Hành động tuyến cơ bản:</strong> Ổn định huyết động, đánh giá đường huyết, chuẩn bị đường truyền và chuẩn bị chuyển tuyến an toàn.
+                        </div>
+                    </div>
+                    
+                    <!-- Cột Hình ảnh minh họa -->
+                    <div class="w-full md:w-2/5 shrink-0">
+                        <div class="slide-image-container shadow-inner">
+                            <img id="slideImage" src="https://placehold.co/400x250/0f172a/3b82f6?text=CT+Scan+Brain" alt="Minh họa y khoa" class="slide-image">
+                        </div>
+                        <p id="slideImageCaption" class="text-[10px] text-center text-slate-500 italic mt-1">Chụp CT Scan sọ não khẩn cấp</p>
+                    </div>
+                </div>
+
+                <!-- Slide Control Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-800 relative z-10 mt-auto">
+                    <div class="flex items-center gap-2">
+                        <button onclick="prevStep()" class="p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg transition" title="Bước trước">
+                            <i class="fa-solid fa-backward-step"></i>
+                        </button>
+                        <button onclick="togglePlay()" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition font-semibold flex items-center gap-2 shadow-lg shadow-blue-600/30">
+                            <i id="playIcon" class="fa-solid fa-play text-xs"></i>
+                            <span id="playText">Phát liên tục</span>
+                        </button>
+                        <button onclick="nextStep()" class="p-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-lg transition" title="Bước tiếp theo">
+                            <i class="fa-solid fa-forward-step"></i>
+                        </button>
+                    </div>
+                    <div class="text-xs text-slate-400 font-medium bg-slate-900/80 px-3 py-1.5 rounded-md border border-slate-800">
+                        Trang: <span id="slideCounter" class="text-blue-400 font-bold">1 / 5</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Step Navigation Cards Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                <button onclick="goToStep(0)" id="navCard0" class="p-3 rounded-xl border text-left transition flex flex-col justify-between gap-2 bg-blue-900/30 border-blue-500 text-white shadow-md shadow-blue-600/10">
+                    <span class="text-[10px] font-bold text-blue-400">BƯỚC 1</span>
+                    <span class="text-xs font-semibold line-clamp-2">Xác định thể đột quỵ</span>
+                </button>
+                <button onclick="goToStep(1)" id="navCard1" class="p-3 rounded-xl border text-left transition flex flex-col justify-between gap-2 bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700">
+                    <span class="text-[10px] font-bold text-slate-500">BƯỚC 2</span>
+                    <span class="text-xs font-semibold line-clamp-2">Xử trí nội khoa đầu</span>
+                </button>
+                <button onclick="goToStep(2)" id="navCard2" class="p-3 rounded-xl border text-left transition flex flex-col justify-between gap-2 bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700">
+                    <span class="text-[10px] font-bold text-slate-500">BƯỚC 3</span>
+                    <span class="text-xs font-semibold line-clamp-2">Xử trí theo CT scan</span>
+                </button>
+                <button onclick="goToStep(3)" id="navCard3" class="p-3 rounded-xl border text-left transition flex flex-col justify-between gap-2 bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700">
+                    <span class="text-[10px] font-bold text-slate-500">BƯỚC 4</span>
+                    <span class="text-xs font-semibold line-clamp-2">Chăm sóc đặc biệt</span>
+                </button>
+                <button onclick="goToStep(4)" id="navCard4" class="p-3 rounded-xl border text-left transition flex flex-col justify-between gap-2 bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700">
+                    <span class="text-[10px] font-bold text-slate-500">BƯỚC 5</span>
+                    <span class="text-xs font-semibold line-clamp-2">Hội chẩn & Chuyển tuyến</span>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- Right: Clinical Reference & Vital Stats Panel (4 cols) -->
+        <section class="lg:col-span-4 flex flex-col gap-5">
+            
+            <!-- Patient Data Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-2xl"></div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+                    <span><i class="fa-solid fa-hospital-user text-blue-500 mr-2"></i> Chỉ số sinh tồn ca bệnh</span>
+                    <span class="text-[10px] bg-blue-950 text-blue-400 px-2 py-0.5 rounded border border-blue-900">Nông Sơn</span>
+                </h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-xs text-slate-400 block">Độ tuổi / Tri giác</span>
+                        <span class="text-lg font-bold text-white">96 tuổi</span>
+                        <span class="text-xs text-red-400 block font-medium">Glasgow 12 điểm</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-xs text-slate-400 block">Đường máu mao mạch</span>
+                        <span class="text-lg font-bold text-red-400">17.52</span>
+                        <span class="text-xs text-slate-400 block">mmol/L (Cực cao)</span>
+                    </div>
+                    <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+                        <span class="text-xs text-slate-400 block">Dấu hiệu thần kinh</span>
+                        <span class="text-sm font-bold text-white mt-0.5 block">Liệt nửa người trái</span>
+                        <span class="text-xs text-slate-400 block">Tiểu không tự chủ</span>
+                    <!-- Audio Simulation Voice Mode Indicator -->
+                    <div class="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-slate-800">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></div>
+                        <span id="voiceStatusLabel">AI Voice: Giọng nam chuẩn y khoa</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Protocol Quick Checklist -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-list text-blue-500"></i> Lưu ý cốt lõi tuyến cơ sở
+                </h3>
+                <ul class="space-y-2.5 text-xs text-slate-300">
+                    <li class="flex items-start gap-2.5 bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
+                        <i class="fa-solid fa-circle-xmark text-red-500 mt-0.5"></i>
+                        <span><strong>Không tiêu sợi huyết:</strong> Chống chỉ định tuyệt đối Alteplase/TNK với bệnh nhân 96 tuổi.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5 bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
+                        <i class="fa-solid fa-circle-check text-blue-400 mt-0.5"></i>
+                        <span><strong>Kiểm soát đường huyết:</strong> Hạ từ từ bằng Insulin truyền tĩnh mạch, mục tiêu 10-12 mmol/L.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5 bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
+                        <i class="fa-solid fa-circle-check text-blue-400 mt-0.5"></i>
+                        <span><strong>Bảo vệ thận:</strong> Truyền dịch cân nhắc NaCl 0.9%, theo dõi sát sát Ure, Creatinin và tiểu qua sonde mỗi giờ.</span>
+                    </li>
+                    <li class="flex items-start gap-2.5 bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/60">
+                        <i class="fa-solid fa-phone-volume text-amber-400 mt-0.5"></i>
+                        <span><strong>Chuyển tuyến thần tốc:</strong> Kết hợp Telemedicine và chuyển Trung tâm Đột quỵ gần nhất trong giờ vàng.</span>
+                    </li>
+                </ul>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer Note -->
+    <footer class="bg-slate-900 border-t border-slate-800/80 py-4 text-center text-xs text-slate-500 mt-auto">
+        <p>Phác đồ cá thể hóa theo khuyến cáo AHA/ASA 2023 & Bộ Y tế • Thiết kế dành cho bác sĩ y khoa cơ sở.</p>
+        <p class="mt-1 text-[10px] text-indigo-400/70">Tích hợp công nghệ AI Đọc văn bản chuyên ngành y khoa.</p>
+    </footer>
+
+    <!-- Interactive Logic & Web Speech API Script -->
+    <script>
+        const steps = [
+            {
+                badge: "BƯỚC 1 / 5",
+                title: "XÁC ĐỊNH THỂ ĐỘT QUỴ NGAY LẬP TỨC",
+                desc: "Vì chưa có kết quả hình ảnh học, chúng ta tuyệt đối không được dùng thuốc tiêu sợi huyết hay chống ngưng tập. Bắt buộc chụp CT scan sọ não (mục tiêu trong 20-30 phút đầu) để phân biệt Xuất huyết não hay Nhồi máu não.",
+                action: "Khẩn trương chỉ định chụp CT scan, tuyệt đối tránh dùng thuốc chống kết tập tiểu cầu hay tiêu sợi huyết khi chưa rõ tổn thương.",
+                img: "https://placehold.co/400x250/0f172a/3b82f6?text=CT+Scan+Brain",
+                caption: "Chụp CT Scan sọ não khẩn cấp",
+                ttsPrompt: "Bước 1. Xác định thể đột quỵ ngay lập tức. Hành động ngay, không trì hoãn. Vì chưa có kết quả hình ảnh học, tuyệt đối không được dùng thuốc tiêu sợi huyết hay chống ngưng tập. Bắt buộc chụp C T scan sọ não, mục tiêu trong vòng 20 đến 30 phút sau khi đến viện, để phân biệt xuất huyết não hay nhồi máu não."
+            },
+            {
+                badge: "BƯỚC 2 / 5",
+                title: "XỬ TRÍ NỘI KHOA BAN ĐẦU (ĐƯỜNG MÁU & HUYẾT ÁP)",
+                desc: "Kiểm soát đường máu cực cao (17.52 mmol/L) bằng Insulin truyền tĩnh mạch (50UI Insulin + 50ml NaCl 0.9%, bơm tiêm điện 2-4 UI/h). Mục tiêu giữ đường máu 10-12 mmol/L trong 24h đầu. Tránh hạ quá nhanh ở người lớn tuổi.",
+                action: "Kiểm soát huyết áp cẩn trọng: Không hạ áp đột ngột trừ khi huyết áp trên 200/110. Theo dõi sát chức năng thận (Creatinin, Ure) và truyền dịch Na-Cl 0.9%.",
+                img: "https://placehold.co/400x250/0f172a/eab308?text=IV+Insulin+Therapy",
+                caption: "Truyền tĩnh mạch Insulin kiểm soát đường huyết",
+                ttsPrompt: "Bước 2. Xử trí nội khoa ban đầu. Mục tiêu: Kiểm soát đường huyết, huyết áp tối ưu. Hạ từ từ đường máu cực cao bằng I-su-lin truyền tĩnh mạch qua bơm tiêm điện. Mục tiêu giữ đường máu ở mức 10 đến 12 mi-li mol trên lít. Kiểm soát huyết áp: không hạ áp đột ngột, theo dõi sát suy thận mạn và điện giải."
+            },
+            {
+                badge: "BƯỚC 3 / 5",
+                title: "XỬ TRÍ SAU KHI CÓ KẾT QUẢ CT SCAN",
+                desc: "Nếu Xuất huyết não: Chống phù não (Mannitol/NaCl 3%), kiểm soát HA 130-140 mmHg, hội chẩn ngoại thần kinh cân nhắc kỹ nguy cơ do tuổi 96. Nếu Nhồi máu não: Chống chỉ định Alteplase. Cân nhắc Aspirin 300mg (nếu không chảy máu) và Statin liều phù hợp.",
+                action: "Bệnh nhân 96 tuổi + suy thận mạn có nguy cơ chảy máu tiêu hóa hoặc quá tải thể tích rất cao, cần cá thể hóa từng quyết định can thiệp.",
+                img: "https://placehold.co/400x250/0f172a/ef4444?text=CT+Analysis",
+                caption: "Phân tích kết quả CT: Xuất huyết vs Nhồi máu",
+                ttsPrompt: "Bước 3. Xử trí theo kết quả C T scan. Tình huống 1: Xuất huyết não, tiên lượng rất nặng, không dùng kháng tiểu cầu, cần chống phù não và hạ huyết áp. Tình huống 2: Nhồi máu não, chống chỉ định tiêu sợi huyết do tuổi cao, điều trị bảo tồn bằng A-xpi-rin 300 mi-li-gam và Xta-tin liều cao."
+            },
+            {
+                badge: "BƯỚC 4 / 5",
+                title: "CHĂM SÓC ĐẶC BIỆT (GLASGOW 12 ĐIỂM)",
+                desc: "Đặt sonde dạ dày để phòng viêm phổi hít do rối loạn nuốt. Đặt sonde tiểu theo dõi lượng nước tiểu mỗi giờ (chỉ số sinh tử cho bệnh nhân suy thận mạn). Trở mình mỗi 2 giờ phòng loét ép, vật lý trị liệu hô hấp.",
+                action: "Ngăn ngừa biến chứng nằm lâu, kiểm soát nguy cơ viêm phổi hít và suy kiệt cấp ở cụ cao tuổi.",
+                img: "https://placehold.co/400x250/0f172a/10b981?text=Intensive+Care",
+                caption: "Chăm sóc đặc biệt: Sonde dạ dày, sonde tiểu, chống loét",
+                ttsPrompt: "Bước 4. Chăm sóc đặc biệt cho bệnh nhân 96 tuổi. Lứa tuổi này rất dễ gặp viêm phổi hít, loét ép và suy kiệt. Do Gờ-lát-gâu 12 điểm, nguy cơ sặc rất cao, bắt buộc phải đặt xông dạ dày. Đồng thời, đặt xông tiểu để theo dõi lượng nước tiểu mỗi giờ, trở mình mỗi 2 giờ chống loét ép."
+            },
+            {
+                badge: "BƯỚC 5 / 5",
+                title: "HỘI CHẨN TELEMEDICINE & CHUYỂN TUYẾN AN TOÀN",
+                desc: "Tình trạng siêu khẩn cấp tại tuyến cơ bản (Nông Sơn): Cần hội chẩn cấp cứu từ xa ngay với tuyến trên, liên hệ Trung tâm Đột quỵ gần nhất có ICU. Chuyển viện nhanh chóng sau khi duy trì đường truyền và đặt sonde dạ dày.",
+                action: "Giải thích rõ tiên lượng rất nặng cho gia đình, tôn trọng quyết định của người nhà giữa điều trị giảm nhẹ hay can thiệp tối đa.",
+                img: "https://placehold.co/400x250/0f172a/8b5cf6?text=Telemedicine+Transfer",
+                caption: "Hội chẩn từ xa và chuẩn bị xe cấp cứu chuyển viện",
+                ttsPrompt: "Bước 5. Hội chẩn và chuyển tuyến. Đây là hành động quan trọng nhất tại tuyến cơ sở. Gọi hội chẩn cấp cứu từ xa tê-lê-mê-đi-xin với tuyến trên ngay lập tức. Chuyển viện càng sớm càng tốt sau khi đã ổn định đường truyền. Lưu ý nhân văn: Giải thích rõ tiên lượng nặng cho gia đình và tôn trọng quyết định của họ."
+            }
+        ];
+
+        let currentStep = 0;
+        let isPlaying = true;
+        let slideInterval;
+        let currentAudio = null;
+        let isGeneratingAudio = false;
+
+        function updateSlide() {
+            // Dừng âm thanh đang phát nếu có
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+
+            const data = steps[currentStep];
+            document.getElementById('stepBadge').innerText = data.badge;
+            document.getElementById('slideTitle').innerText = data.title;
+            document.getElementById('slideDesc').innerText = data.desc;
+            document.getElementById('slideKeyAction').innerHTML = `<strong>Khuyến cáo lâm sàng:</strong> ${data.action}`;
+            
+            // Cập nhật hình ảnh
+            document.getElementById('slideImage').src = data.img;
+            document.getElementById('slideImageCaption').innerText = data.caption;
+
+            // Cập nhật số trang
+            const counter = document.getElementById('slideCounter');
+            if (counter) counter.innerText = `${currentStep + 1} / ${steps.length}`;
+
+            // Update nav cards style
+            for (let i = 0; i < steps.length; i++) {
+                const card = document.getElementById(`navCard${i}`);
+                if (i === currentStep) {
+                    card.className = "p-3 rounded-xl border text-left transition flex flex-col justify-between gap-2 bg-blue-900/30 border-blue-500 text-white shadow-md shadow-blue-600/10 scale-[1.02]";
+                } else {
+                    card.className = "p-3 rounded-xl border text-left transition flex flex-col justify-between gap-2 bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700";
+                }
+            }
+
+            resetAudioUI();
+
+            // Nếu đang ở chế độ autoplay, tự động phát âm thanh AI
+            if (isPlaying) {
+                // Tạm dừng timer autoplay để đợi đọc xong
+                clearInterval(slideInterval);
+                playAIVoice(true); 
+            }
+        }
+
+        // --- Helper function for Base64 to ArrayBuffer (for Gemini TTS) ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // --- Helper function for PCM to WAV (for Gemini TTS) ---
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1; // Mono
+            const bytesPerSample = 2; // 16-bit
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            // fmt sub-chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+            view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true); // BitsPerSample
+            // data sub-chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+            // Write PCM samples
+            let offset = 44;
+            for (let i = 0; i < pcm16.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16[i], true);
+            }
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function resetAudioUI() {
+            const icon = document.getElementById('speakerIcon');
+            const text = document.getElementById('speechText');
+            const loader = document.getElementById('audioLoader');
+            icon.className = "fa-solid fa-microphone-lines";
+            text.innerText = "Phát Audio AI";
+            loader.classList.remove('active');
+            isGeneratingAudio = false;
+        }
+
+        async function playAIVoice(isAutoPlaying = false) {
+            if (isGeneratingAudio) return; // Đang xử lý
+            
+            // Nếu đang phát thì dừng lại
+            if (currentAudio && !currentAudio.paused) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                resetAudioUI();
+                return;
+            }
+
+            const data = steps[currentStep];
+            const textToSpeak = `Nói với phong cách dứt khoát, chuyên nghiệp, nhịp độ vừa phải, giọng nam rõ ràng: ${data.ttsPrompt}`;
+            
+            const icon = document.getElementById('speakerIcon');
+            const text = document.getElementById('speechText');
+            const loader = document.getElementById('audioLoader');
+
+            icon.className = "fa-solid fa-circle-notch fa-spin text-indigo-300";
+            text.innerText = "Đang tạo Audio...";
+            loader.classList.add('active');
+            isGeneratingAudio = true;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: textToSpeak }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            // Sử dụng giọng "Iapetus" (Clear, Nam tính) hoặc "Fenrir" (Excitable) phù hợp để thuyết trình
+                            prebuiltVoiceConfig: { voiceName: "Iapetus" } 
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const apiKey = ""; // Canvas tự động điền key
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    currentAudio = new Audio(audioUrl);
+                    
+                    currentAudio.onplay = () => {
+                        icon.className = "fa-solid fa-wave-square text-indigo-400 animate-pulse";
+                        text.innerText = "Đang phát AI";
+                        loader.classList.remove('active');
+                    };
+
+                    currentAudio.onended = () => {
+                        resetAudioUI();
+                        // Nếu đang ở chế độ autoplay, tự động chuyển slide sau khi đọc xong
+                        if (isPlaying && isAutoPlaying) {
+                            // Nghỉ 1 giây giữa các slide để người nghe tiếp thu, sau đó lật trang
+                            setTimeout(() => {
+                                if (isPlaying) nextStep();
+                            }, 1000);
+                        }
+                    };
+
+                    currentAudio.play();
+                } else {
+                    console.error("Không nhận được dữ liệu âm thanh hợp lệ từ API.");
+                    resetAudioUI();
+                    if(isPlaying && isAutoPlaying) resumeAutoPlayTimeout(); // Tiếp tục quay vòng nếu lỗi
+                }
+
+            } catch (error) {
+                console.error("Lỗi khi gọi TTS API:", error);
+                resetAudioUI();
+                text.innerText = "Lỗi Audio";
+                if(isPlaying && isAutoPlaying) resumeAutoPlayTimeout(); // Tiếp tục quay vòng nếu lỗi
+            } finally {
+                isGeneratingAudio = false;
+            }
+        }
+
+        function resumeAutoPlayTimeout() {
+            clearInterval(slideInterval);
+            slideInterval = setInterval(() => {
+                if (isPlaying) nextStep();
+            }, 8000); // Tự chuyển sau 8s nếu không có audio
+        }
+
+        function nextStep() {
+            currentStep = (currentStep + 1) % steps.length;
+            updateSlide();
+        }
+
+        function prevStep() {
+            currentStep = (currentStep - 1 + steps.length) % steps.length;
+            updateSlide();
+        }
+
+        function goToStep(index) {
+            currentStep = index;
+            updateSlide();
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            const icon = document.getElementById('playIcon');
+            const text = document.getElementById('playText');
+            if (isPlaying) {
+                icon.className = "fa-solid fa-pause text-xs";
+                text.innerText = "Tạm dừng";
+                // Bắt đầu đọc audio của slide hiện tại ngay khi bấm Phát
+                playAIVoice(true);
+            } else {
+                icon.className = "fa-solid fa-play text-xs";
+                text.innerText = "Phát tiếp";
+                clearInterval(slideInterval);
+                if (currentAudio) {
+                    currentAudio.pause();
+                    resetAudioUI();
+                }
+            }
+        }
+
+        // Khởi chạy khi load trang
+        window.onload = function() {
+            // Không tự động phát ngay để tránh bị trình duyệt block audio do chưa có tương tác người dùng
+            // Chúng ta thiết lập UI ở trạng thái sẵn sàng
+            isPlaying = false;
+            updateSlide(); // Cập nhật hình ảnh slide đầu tiên
+        };
+    </script>
+</body>
+</html>
